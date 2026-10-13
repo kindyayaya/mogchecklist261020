@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>莫古莫古大收集集集-奇譚探究者</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft JhengHei", sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 750px;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: #0f172a;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .action-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        .clear-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .clear-btn:hover { background-color: #dc2626; }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            color: #475569;
+            font-size: 14px;
+            margin-bottom: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+            max-height: 60vh;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            border-bottom: 1px solid #edf2f7;
+            transition: background-color 0.2s;
+        }
+        .item-row:last-child { border-bottom: none; }
+        .item-row:hover { background-color: #f8fafc; }
+        
+        .item-row.hidden-item {
+            background-color: #f8fafc;
+            opacity: 0.35;
+        }
+        .item-row.hidden-item .left-part {
+            pointer-events: none;
+        }
+        .item-row.hidden-item .num-input {
+            background-color: transparent !important;
+            pointer-events: none;
+        }
+
+        .left-part {
+            display: flex;
+            align-items: center;
+            flex: 2;
+            cursor: pointer;
+            min-width: 0;
+        }
+        .left-part input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .item-name-wrapper {
+            display: inline-flex;
+            align-items: center;
+            min-width: 0;
+            flex: 1;
+        }
+        .item-name {
+            font-size: 15px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #global-tooltip {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            width: max-content;
+            max-width: 220px;
+            background-color: rgba(15, 23, 42, 0.95);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: normal;
+            line-height: 1.4;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+            pointer-events: none;
+        }
+
+        .right-part {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+        .num-input {
+            width: 70px;
+            padding: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            text-align: right;
+            font-size: 14px;
+        }
+        
+        /* 💡 核心修改一：調整金額呈現與「置中對齊」 */
+        .price-input[readonly] {
+            width: 80px;                   /* 固定寬度，與上方標頭字寬貼合 */
+            background-color: transparent; 
+            color: #1e293b;                
+            border: none;                  
+            cursor: default;               
+            font-weight: 500;              
+            text-align: center;            /* 讓金額數字「置中對齊」 */
+            padding: 6px 0;
+        }
+        /* 隱藏數字輸入框內建的上下調整箭頭 */
+        .price-input::-webkit-outer-spin-button,
+        .price-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .price-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .item-row.checked .price-input {
+            color: #166534;
+        }
+        
+        .hide-control-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .hide-control-label:hover {
+            background-color: #e2e8f0;
+        }
+        .hide-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .item-row.checked { background-color: #f0fdf4; }
+        .item-row.checked .item-name { color: #166534; }
+        
+        .total-section {
+            background: #2563eb;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+        }
+        .total-amount { font-size: 26px; }
+        
+        /* 💡 核心修改二：微調標頭與內容欄位的欄寬分配，達成完美對齊 */
+        .header-item-name { flex: 2; }
+        .header-item-controls { display: flex; gap: 15px; padding-right: 0px; flex-shrink: 0; align-items: center; }
+        .header-price-txt { width: 80px; text-align: center; } /* 標頭文字也固定 80px 且置中 */
+        .header-count-txt { width: 84px; text-align: center; } /* 購買數量標頭對齊 */
+        .header-hide-txt { width: 45px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 id="mainTitle">莫古莫古大收集-我要肝多少? 1151020 奇譚探究者</h1>
+    <div class="subtitle">資料來源：FFXIV官網、灰基</div>
+    <div class="subtitle">可能有地圖名稱、後期副本與腳色名稱雷</div>
+    <div class="action-bar">
+        <button class="clear-btn" onclick="resetToDefault()">🔄 完全重設</button>
+    </div>
+
+    <div class="table-header">
+        <span class="header-item-name">兌換道具</span>
+        <div class="header-item-controls">
+            <span class="header-price-txt">神典石</span>
+            <span class="header-count-txt">兌換數</span>
+            <span class="header-hide-txt">完成</span>
+        </div>
+    </div>
+
+    <ul class="checklist" id="checklist">
+    </ul>
+
+    <div class="total-section">
+        <span>還需要：</span>
+        <div>
+            <span class="total-amount" id="totalAmount">0</span>
+            <span>稀少神典石</span>
+        </div>
+    </div>
+</div>
+
+<div id="global-tooltip"></div>
+
+<script>
+    const defaultData = [
+        {name: "咖啡杯耳墜", val: 100, desc: "活動專屬，推薦兌換"}, 
+        {name: "管弦樂琴樂譜：忘卻的此岸", val: 50, desc: "伊甸共鳴4，推薦兌換"}, 
+        {name: "惡魔磚塊耳墜", val: 50, desc: "各種活動限定，推薦兌換"},
+        {name: "紅寶石玲龍魔笛", val: 50, desc: "5.x紅寶石討伐任務，保底99場，推薦兌換"}, 
+        {name: "青蛙號M啟動鑰匙", val: 50, desc: "5版特殊FATE畏懼裝甲掉落材料後兌換，推薦兌換"}, 
+        {name: "髮型樣式：基拉巴尼亞編髮", val: 50, desc: "4版天宮，7版新月島北島，推薦兌換"},
+        {name: "幻影亡靈法師", val: 50, desc: "80等副本 漆黑決戰諾弗蘭特，推薦兌換"}, 
+        {name: "機工士裝甲", val: 30, desc: "3版蒼天街禮物箱"}, 
+        {name: "演技教材・振作精神", val: 30, desc: "4版優雷卡，7版新月島北島"},
+        {name: "田園圓點陽傘", val: 30, desc: "3版蒼天街，7.4、7.5遺物探索"}, 
+	{name: "金碟幣白金卡", val: 30, desc: "3版天書奇談功能 兩條線以上，可以換5萬金碟幣"},
+        {name: "火蛟角笛", val: 30, desc: "2版蜥蜴人友好部族信賴以上12萬購買"}, 
+	{name: "恐狼角笛", val: 30, desc: "2版鳥人友好部族誓約以上12萬購買"}, 
+	{name: "狂歡神威魔笛", val: 30, desc: "70等殲滅 極須左"},
+        {name: "極樂神威魔笛", val: 30, desc: "70等殲滅 極天女"}, 
+	{name: "木製垃圾桶", val: 20},
+	{name: "伊爾美格花園噴泉", val: 20},
+        {name: "鞦韆椅", val: 20}, 
+	{name: "胡桃木立架花瓶", val: 20}, 
+	{name: "庭院智蛙擺飾", val: 20},
+        {name: "地靈娃娃", val: 15, desc: "2版風精友好部族信賴以上2.5萬購買"}, 
+	{name: "伊修加爾德新型禦敵上衣", val: 15}, 
+	{name: "伊修加爾德新型禦敵下身", val: 15}, 
+	{name: "伊修加爾德新型制敵上衣", val: 15}, 
+	{name: "伊修加爾德新型制敵下身", val: 15}, 
+	{name: "伊修加爾德新型強襲上衣", val: 15}, 
+	{name: "伊修加爾德新型強襲下身", val: 15}, 
+	{name: "伊修加爾德新型游擊上衣", val: 15}, 
+	{name: "伊修加爾德新型游擊下身", val: 15}, 
+	{name: "伊修加爾德新型精準上衣", val: 15}, 
+	{name: "伊修加爾德新型精準下身", val: 15}, 
+	{name: "伊修加爾德新型治癒上衣", val: 15}, 
+	{name: "伊修加爾德新型治癒下身", val: 15}, 
+	{name: "伊修加爾德新型詠咒上衣", val: 15}, 
+	{name: "伊修加爾德新型詠咒下身", val: 15}, 
+	{name: "月火男式坎肩", val: 15, desc: "2版死宮、7版新月島北島"}, 
+	{name: "月火男式短褲", val: 15, desc: "2版死宮、7版新月島北島"}, 
+	{name: "月火女式夏衣", val: 15, desc: "2版死宮、7版新月島北島"}, 
+	{name: "月火女式夏褲", val: 15, desc: "2版死宮、7版新月島北島"}, 
+        {name: "陳舊的地圖S1", val: 15, desc: "70等 8人 必出紋 可堆疊"}, 
+        {name: "陳舊的地圖S2", val: 15, desc: "80等 8人 必出紋 可堆疊"}, 
+        {name: "陳舊的地圖S3", val: 15, desc: "90等 8人 必出紋 可堆疊"},
+        {name: "陳舊的地圖S4", val: 15, desc: "90等 8人 必出紋 可堆疊"}, 
+        {name: "西薩納蘭詳細地圖", val: 10, desc: "2版狩獵 同盟徽章250"}, 
+	{name: "中薩納蘭詳細地圖", val: 10, desc: "2版狩獵 同盟徽章250"},
+        {name: "東薩納蘭詳細地圖", val: 10, desc: "2版狩獵 同盟徽章250"}, 
+	{name: "南薩納蘭詳細地圖", val: 10, desc: "2版狩獵 同盟徽章250"}, 
+	{name: "北薩納蘭詳細地圖", val: 10, desc: "2版狩獵 同盟徽章250"},
+	{name: "九宮幻卡：羅羅力特・納納力特", val: 10, desc: "沙都現世维蒙德對戰取得"}, 
+	{name: "九宮幻卡：吉布里隆", val: 10, desc: "雪都砥柱層艾蕾兹對戰取得"},
+        {name: "九宮幻卡：不明物體", val: 7, desc: "80等副本 黑風海底阿尼德羅追憶館"}, 
+	{name: "九宮幻卡：瓦厲斯・耶・加爾烏斯", val: 7, desc: "5版支線博茲雅追憶戰"}, 
+	{name: "九宮幻卡：2B", val: 7, desc: "5版團隊 塔"}, 
+        {name: "虎斑次郎", val: 7, desc: "3/4版狩獵 兵團徽章800"}, 
+	{name: "管弦樂琴樂譜：走向世界", val: 7, desc: "飛空艇取得材料後製作"}, 
+	{name: "巧兒鳥耳墜", val: 1, desc: "活動專屬，推薦兌換"}, 
+        {name: "道士莫古利娃娃", val: 1, desc: "活動專屬/商城購買 推薦兌換"}, 
+	{name: "魔法棱晶（職業大師）×5", val: 1}
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initWebData();
+        setupTooltipEvents();
+    });
+
+    function initWebData() {
+        // 💡 換成 v15 金鑰
+        const savedData = localStorage.getItem('mogchecklistv1151020');
+        const checklistUl = document.getElementById('checklist');
+        checklistUl.innerHTML = '';
+
+        let listToRender = [];
+        if (savedData) {
+            listToRender = JSON.parse(savedData);
+        } else {
+            listToRender = defaultData.map((item, idx) => ({
+                id: 'item_' + idx,
+                name: item.name,
+                price: item.val,
+                count: 1,
+                desc: item.desc || item.name,
+                isChecked: false,
+                isHidden: false
+            }));
+            localStorage.setItem('mogchecklistv1151020', JSON.stringify(listToRender));
+        }
+
+        listToRender.forEach(item => {
+            renderItemRow(item);
+        });
+        calculateTotal();
+    }
+
+    function renderItemRow(item) {
+        const checklistUl = document.getElementById('checklist');
+        const li = document.createElement('li');
+        
+        let rowClass = 'item-row';
+        if (item.isChecked) rowClass += ' checked';
+        if (item.isHidden) rowClass += ' hidden-item';
+        
+        li.className = rowClass;
+        li.setAttribute('data-id', item.id);
+
+        li.innerHTML = `
+            <label class="left-part">
+                <input type="checkbox" class="item-checkbox" ${item.isChecked ? 'checked' : ''} onchange="handleRowChange(this)">
+                <div class="item-name-wrapper" data-tooltip="${item.desc}">
+                    <span class="item-name">${item.name}</span>
+                </div>
+            </label>
+            <div class="right-part">
+                <div class="input-group"><input type="number" class="num-input price-input" value="${item.price}" readonly></div>
+                <div class="input-group"><input type="number" class="num-input count-input" value="${item.count}" min="1" oninput="saveAndCalculate()"></div>
+                <label class="hide-control-label" title="${item.isHidden ? '按錯了，還沒集完' : '達成請打勾（總數扣除）'}">
+                    <input type="checkbox" class="hide-checkbox" ${item.isHidden ? 'checked' : ''} onchange="toggleHide(this)">
+                </label>
+            </div>
+        `;
+        checklistUl.appendChild(li);
+    }
+
+    function setupTooltipEvents() {
+        const tooltip = document.getElementById('global-tooltip');
+        const checklist = document.getElementById('checklist');
+
+        checklist.addEventListener('mouseover', (e) => {
+            const wrapper = e.target.closest('.item-name-wrapper');
+            if (wrapper) {
+                const text = wrapper.getAttribute('data-tooltip');
+                tooltip.innerText = text;
+                tooltip.style.display = 'block';
+            }
+        });
+
+        checklist.addEventListener('mousemove', (e) => {
+            const wrapper = e.target.closest('.item-name-wrapper');
+            if (wrapper) {
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+            }
+        });
+
+        checklist.addEventListener('mouseout', (e) => {
+            const wrapper = e.target.closest('.item-name-wrapper');
+            if (wrapper) {
+                tooltip.style.none = tooltip.style.display = 'none';
+            }
+        });
+    }
+
+    function handleRowChange(checkbox) {
+        const row = checkbox.closest('.item-row');
+        if (checkbox.checked) {
+            row.classList.add('checked');
+        } else {
+            row.classList.remove('checked');
+        }
+        saveAndCalculate();
+    }
+
+    function toggleHide(checkbox) {
+        const row = checkbox.closest('.item-row');
+        const label = checkbox.closest('.hide-control-label');
+        
+        if (checkbox.checked) {
+            row.classList.add('hidden-item');
+            label.title = '按錯了，還沒集完';
+        } else {
+            row.classList.remove('hidden-item');
+            label.title = '達成請打勾（總數扣除）';
+        }
+        saveAndCalculate();
+    }
+
+    function saveAndCalculate() {
+        const rows = document.querySelectorAll('.item-row');
+        const currentList = [];
+
+        rows.forEach(row => {
+            const id = row.getAttribute('data-id');
+            const name = row.querySelector('.item-name').innerText;
+            const isChecked = row.querySelector('.item-checkbox').checked;
+            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+            const count = parseFloat(row.querySelector('.count-input').value) || 0;
+            const isHidden = row.querySelector('.hide-checkbox').checked;
+            const desc = row.querySelector('.item-name-wrapper').getAttribute('data-tooltip');
+
+            currentList.push({ id, name, price, count, isChecked, isHidden, desc });
+        });
+
+        localStorage.setItem('mogchecklistv1151020', JSON.stringify(currentList));
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        let total = 0;
+        const rows = document.querySelectorAll('.item-row');
+
+        rows.forEach(row => {
+            const isChecked = row.querySelector('.item-checkbox').checked;
+            const isHidden = row.querySelector('.hide-checkbox').checked;
+            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+            const count = parseFloat(row.querySelector('.count-input').value) || 0;
+
+            if (!isHidden && isChecked) {
+                total += (price * count);
+            }
+        });
+        document.getElementById('totalAmount').innerText = total.toLocaleString();
+    }
+
+    function resetToDefault() {
+        if (confirm("確定要重設網頁，清除所有的勾選與隱藏狀態嗎？")) {
+            localStorage.removeItem('mogchecklistv1151020');
+            initWebData();
+        }
+    }
+</script>
+
+</body>
+</html>
