@@ -331,31 +331,47 @@
         setupTooltipEvents();
     });
 
+    const STORAGE_KEY = 'mogchecklistv1151020v2';
+
     function initWebData() {
-        // 💡 換成 v15 金鑰
-        const savedData = localStorage.getItem('mogchecklistv1151020v2');
         const checklistUl = document.getElementById('checklist');
         checklistUl.innerHTML = '';
 
-        let listToRender = [];
-        if (savedData) {
-            listToRender = JSON.parse(savedData);
-        } else {
-            listToRender = defaultData.map((item, idx) => ({
+        // 最新道具清單以 defaultData 為準；只從舊資料保留使用者操作狀態。
+        let savedItems = [];
+        try {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            const parsed = savedData ? JSON.parse(savedData) : [];
+            if (Array.isArray(parsed)) savedItems = parsed;
+        } catch (error) {
+            console.warn('儲存資料無法讀取，改用預設清單：', error);
+        }
+
+        // 依名稱對應，不使用舊的陣列索引，避免新增或調整排序時進度錯置。
+        const savedByName = new Map();
+        savedItems.forEach(item => {
+            if (item && typeof item.name === 'string' && !savedByName.has(item.name)) {
+                savedByName.set(item.name, item);
+            }
+        });
+
+        const listToRender = defaultData.map((item, idx) => {
+            const previous = savedByName.get(item.name);
+            const savedCount = previous ? Number(previous.count) : NaN;
+            return {
                 id: 'item_' + idx,
                 name: item.name,
                 price: item.val,
-                count: 1,
                 desc: item.desc || item.name,
-                isChecked: false,
-                isHidden: false
-            }));
-            localStorage.setItem('mogchecklistv1151020v2', JSON.stringify(listToRender));
-        }
-
-        listToRender.forEach(item => {
-            renderItemRow(item);
+                count: Number.isFinite(savedCount) && savedCount >= 1 ? savedCount : 1,
+                isChecked: previous ? previous.isChecked === true : false,
+                isHidden: previous ? previous.isHidden === true : false
+            };
         });
+
+        // 同步新道具、價格、說明及排序，同時保留原本的勾選與數量。
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(listToRender));
+        listToRender.forEach(renderItemRow);
         calculateTotal();
     }
 
@@ -457,7 +473,7 @@
             currentList.push({ id, name, price, count, isChecked, isHidden, desc });
         });
 
-        localStorage.setItem('mogchecklistv1151020v2', JSON.stringify(currentList));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentList));
         calculateTotal();
     }
 
@@ -480,7 +496,7 @@
 
     function resetToDefault() {
         if (confirm("確定要重設網頁，清除所有的勾選與隱藏狀態嗎？")) {
-            localStorage.removeItem('mogchecklistv1151020v2');
+            localStorage.removeItem(STORAGE_KEY);
             initWebData();
         }
     }
