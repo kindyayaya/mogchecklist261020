@@ -267,7 +267,7 @@
 <script>
     const defaultData = [
         {name: "咖啡杯耳墜", val: 100, desc: "活動專屬，推薦兌換"}, 
-        {name: "管弦樂琴樂譜：忘卻的此岸", val: 50, desc: "伊甸共鳴4，推薦兌換"}, 
+        {name: "管弦樂琴樂譜：忘卻的此岸", val: 100, desc: "伊甸共鳴4，推薦兌換"}, 
         {name: "惡魔磚塊耳墜", val: 50, desc: "各種活動限定，推薦兌換"},
         {name: "紅寶石玲龍魔笛", val: 50, desc: "5.x紅寶石討伐任務，保底99場，推薦兌換"}, 
         {name: "青蛙號M啟動鑰匙", val: 50, desc: "5版特殊FATE畏懼裝甲掉落材料後兌換，推薦兌換"}, 
@@ -323,7 +323,7 @@
 	{name: "管弦樂琴樂譜：走向世界", val: 7, desc: "飛空艇取得材料後製作"}, 
 	{name: "巧兒鳥耳墜", val: 1, desc: "活動專屬，推薦兌換"}, 
         {name: "道士莫古利娃娃", val: 1, desc: "活動專屬/商城購買 推薦兌換"}, 
-	{name: "魔法棱晶（職業大師）×5", val: 1}
+	{name: "魔法棱晶（職業大師）×10", val: 1}
     ];
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -333,7 +333,7 @@
 
     function initWebData() {
         // 💡 換成 v15 金鑰
-        const savedData = localStorage.getItem('mogchecklistv1151020');
+        const savedData = localStorage.getItem('mogchecklistv1151020v2v2v2v2');
         const checklistUl = document.getElementById('checklist');
         checklistUl.innerHTML = '';
 
@@ -350,7 +350,7 @@
                 isChecked: false,
                 isHidden: false
             }));
-            localStorage.setItem('mogchecklistv1151020', JSON.stringify(listToRender));
+            localStorage.setItem('mogchecklistv1151020v2v2v2v2', JSON.stringify(listToRender));
         }
 
         listToRender.forEach(item => {
@@ -457,7 +457,7 @@
             currentList.push({ id, name, price, count, isChecked, isHidden, desc });
         });
 
-        localStorage.setItem('mogchecklistv1151020', JSON.stringify(currentList));
+        localStorage.setItem('mogchecklistv1151020v2v2v2v2', JSON.stringify(currentList));
         calculateTotal();
     }
 
@@ -480,7 +480,7 @@
 
     function resetToDefault() {
         if (confirm("確定要重設網頁，清除所有的勾選與隱藏狀態嗎？")) {
-            localStorage.removeItem('mogchecklistv1151020');
+            localStorage.removeItem('mogchecklistv1151020v2v2v2v2');
             initWebData();
         }
     }
